@@ -1,0 +1,42 @@
+packages:
+  - git: "https://github.com/superbolt-x/bolt-dbt-utils.git"
+    revision: main
+    
+  - git: "https://github.com/superbolt-x/bolt-dbt-facebook-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-googleads-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-shopify-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-tiktok-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-pinterest-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-snapchat-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-klaviyo-package.git"
+    revision: main
+    
+  - git: "https://github.com/superbolt-x/bolt-dbt-adroll-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-googleanalytics-package.git"
+    revision: main
+
+  - git: "https://github.com/superbolt-x/bolt-dbt-ga4-package.git"
+    revision: main
+    
+  - git: "https://github.com/superbolt-x/bolt-dbt-bingads-package.git"
+    revision: main
+    
+  - git: "https://github.com/superbolt-x/bolt-dbt-recharge-package.git"
+    revision: main
+    
+  - git: "https://github.com/superbolt-x/bolt-dbt-reddit-package.git"
+    revision: main
