@@ -211,7 +211,7 @@ SELECT
   coalesce(ga4_revenue,0) as ga4_revenue
 FROM conversion_data 
 FULL OUTER JOIN paid_data USING(date,channel,campaign_id,campaign_name)
-FULL OUTER JOIN paid_data USING(date,channel,campaign_id)
+FULL OUTER JOIN ga4_data USING(date,channel,campaign_id)
 ORDER BY date desc )
 
 select *
