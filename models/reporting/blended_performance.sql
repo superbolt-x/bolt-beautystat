@@ -97,6 +97,10 @@ WITH orders AS (
             + COALESCE(r.total_tax,0)
             + COALESCE(r.shipping_price,0)
             - COALESCE(r.shipping_discount,0)
+        ) AS total_sales_amount,
+		(
+            COALESCE(r.gross_revenue,0)
+            - COALESCE(r.subtotal_discount,0)
         ) AS sales_amount,
 
         -- Refund amount
@@ -104,6 +108,9 @@ WITH orders AS (
             COALESCE(r.subtotal_refund,0)
             - COALESCE(r.shipping_refund,0)
             + COALESCE(r.tax_refund,0)
+        ) AS total_refund_amount,
+		(
+            COALESCE(r.subtotal_refund,0)
         ) AS refund_amount
 
     FROM refund_order_data r
@@ -120,6 +127,9 @@ WITH orders AS (
         SUM(
             sales_amount::float / order_index::float
         ) AS revenue,
+		SUM(
+            total_sales_amount::float / order_index::float
+        ) AS total_revenue,
 
         SUM(
             CASE 
@@ -128,10 +138,19 @@ WITH orders AS (
                 ELSE 0
             END
         ) AS new_revenue,
+		SUM(
+            CASE 
+                WHEN customer_order_index = 1
+                THEN total_sales_amount::float / order_index::float
+                ELSE 0
+            END
+        ) AS total_new_revenue,
         SUM(
             refund_amount::float / order_index::float
         ) AS refunds,
-
+		SUM(
+            total_refund_amount::float / order_index::float
+        ) AS total_refunds,
         SUM(
             CASE 
                 WHEN customer_order_index = 1
@@ -139,10 +158,21 @@ WITH orders AS (
                 ELSE 0
             END
         ) AS new_refunds,
+		SUM(
+            CASE 
+                WHEN customer_order_index = 1
+                THEN total_refund_amount::float / order_index::float
+                ELSE 0
+            END
+        ) AS total_new_refunds,
         SUM(
             (sales_amount - refund_amount)::float
             / order_index::float
         ) AS net_revenue,
+		SUM(
+            (total_sales_amount - total_refund_amount)::float
+            / order_index::float
+        ) AS total_net_revenue,
         SUM(order_count::float / order_index::float) AS purchases,
 
         SUM(
@@ -206,8 +236,9 @@ WITH orders AS (
 SELECT 
 	date::date as date, channel, campaign_id, campaign_name,
 	coalesce(spend,0) as spend, coalesce(impressions,0) as impressions, coalesce(clicks,0) as clicks, coalesce(paid_purchases,0) as paid_purchases, 
-  coalesce(paid_revenue,0) as paid_revenue, coalesce(net_revenue,0) as net_revenue, coalesce(revenue,0) as revenue, 
-  coalesce(new_revenue,0)-coalesce(new_refunds,0) as net_new_revenue, coalesce(new_revenue,0) as new_revenue, coalesce(purchases,0) as purchases, 
+  coalesce(paid_revenue,0) as paid_revenue, coalesce(net_revenue,0) as net_revenue, coalesce(revenue,0) as revenue, coalesce(total_net_revenue,0) as total_net_revenue, 
+	coalesce(total_revenue,0) as total_revenue, coalesce(new_revenue,0)-coalesce(new_refunds,0) as net_new_revenue, coalesce(new_revenue,0) as new_revenue, 
+	coalesce(total_new_revenue,0)-coalesce(total_new_refunds,0) as total_net_new_revenue, coalesce(total_new_revenue,0) as total_new_revenue, coalesce(purchases,0) as purchases, 
   coalesce(new_purchases,0) as new_purchases, coalesce(sessions,0) as sessions, coalesce(engaged_sessions,0) as engaged_sessions, coalesce(ga4_purchases,0) as ga4_purchases, 
   coalesce(ga4_revenue,0) as ga4_revenue
 FROM conversion_data 
