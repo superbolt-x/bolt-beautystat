@@ -199,6 +199,7 @@ WITH orders AS (
         sum(sessions) as sessions, sum(engaged_sessions) as engaged_sessions, sum(conversions_purchase) as ga4_purchases, sum(purchase_revenue) as ga4_revenue
     FROM ga4_raw.traffic_sources_session
     GROUP BY 1,2
+)
 
 , final_data AS (
 SELECT 
