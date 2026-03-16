@@ -190,6 +190,7 @@ WITH orders AS (
 
 , ga4_data as (
     SELECT 
+		date,
         CASE 
             WHEN session_source_medium = 'facebook / cpc' THEN 'Facebook'
             WHEN session_source_medium = 'google / cpc' THEN 'Google Ads'
@@ -198,7 +199,7 @@ WITH orders AS (
         session_campaign_id::varchar as campaign_id,
         sum(sessions) as sessions, sum(engaged_sessions) as engaged_sessions, sum(conversions_purchase) as ga4_purchases, sum(purchase_revenue) as ga4_revenue
     FROM ga4_raw.traffic_sources_session
-    GROUP BY 1,2
+    GROUP BY 1,2,3
 )
 
 , final_data AS (
