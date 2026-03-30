@@ -232,6 +232,17 @@ WITH orders AS (
     GROUP BY 1,2,3
 )
 
+, tracker_data as (
+    SELECT 
+		date::date as date,
+        'Other' AS channel,
+        '(not set)' as campaign_id,
+        sum(forecasted_spend) as forecasted_spend, sum(forecasted_revenue) as forecasted_revenue, 
+		sum(actual_total_spend) as tw_spend, sum(sessions) as tw_sessions
+    FROM gsheet_raw.forecast_data
+    GROUP BY 1,2,3
+)
+
 , final_data AS (
 SELECT 
 	date::date as date, channel, campaign_id, campaign_name,
@@ -244,6 +255,7 @@ SELECT
 FROM conversion_data 
 FULL OUTER JOIN paid_data USING(date,channel,campaign_id,campaign_name)
 FULL OUTER JOIN ga4_data USING(date,channel,campaign_id)
+FULL OUTER JOIN tracker_data USING(date,channel,campaign_id)
 ORDER BY date desc )
 
 select *
