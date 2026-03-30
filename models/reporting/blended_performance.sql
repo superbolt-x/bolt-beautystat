@@ -251,7 +251,8 @@ SELECT
 	coalesce(total_revenue,0) as total_revenue, coalesce(new_revenue,0)-coalesce(new_refunds,0) as net_new_revenue, coalesce(new_revenue,0) as new_revenue, 
 	coalesce(total_new_revenue,0)-coalesce(total_new_refunds,0) as total_net_new_revenue, coalesce(total_new_revenue,0) as total_new_revenue, coalesce(purchases,0) as purchases, 
   coalesce(new_purchases,0) as new_purchases, coalesce(sessions,0) as sessions, coalesce(engaged_sessions,0) as engaged_sessions, coalesce(ga4_purchases,0) as ga4_purchases, 
-  coalesce(ga4_revenue,0) as ga4_revenue
+  coalesce(ga4_revenue,0) as ga4_revenue, coalesce(forecasted_spend,0) as forecasted_spend, coalesce(forecasted_revenue,0) as forecasted_revenue, 
+	coalesce(tw_spend,0) as tw_spend, coalesce(tw_sessions,0) as tw_sessions
 FROM conversion_data 
 FULL OUTER JOIN paid_data USING(date,channel,campaign_id,campaign_name)
 FULL OUTER JOIN ga4_data USING(date,channel,campaign_id)
