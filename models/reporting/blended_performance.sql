@@ -205,7 +205,7 @@ WITH orders AS (
 , paid_data as (
 	SELECT 'Facebook' as channel, campaign_id::varchar as campaign_id, campaign_name,
 	date, sum(spend) as spend, sum(impressions) as impressions, sum(link_clicks) as clicks, sum(purchases) as paid_purchases, sum(revenue) as paid_revenue
-	FROM reporting.beautystat_facebook_ad_performance 
+	FROM reporting.beautystat_facebook_campaign_performance 
 	where date_granularity = 'day'
 	and (spend > 0 or link_clicks > 0 or impressions > 0)
 	group by 1,2,3,4
