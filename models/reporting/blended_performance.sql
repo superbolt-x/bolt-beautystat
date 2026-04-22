@@ -2,50 +2,7 @@
     alias = target.database + '_blended_performance'
 )}}
 
-WITH orders AS (
-
-    SELECT order_id, date as order_date
-    FROM reporting.beautystat_shopify_daily_sales_by_order
-
-)
-
-, refund_order_data AS (
-
-    -- Sales rows
-    SELECT 
-        date,
-        order_id,
-        customer_order_index,
-		    1 AS order_count,
-        gross_revenue,
-        total_revenue,
-        subtotal_discount,
-        shipping_price,
-        total_tax,
-        shipping_discount,
-        0 AS subtotal_refund,
-        0 AS shipping_refund,
-        0 AS tax_refund
-    FROM reporting.beautystat_shopify_daily_sales_by_order
-    WHERE order_id IN (SELECT order_id FROM orders)
-
-    UNION ALL
-
-    -- Refund rows
-    SELECT 
-        date,
-        order_id,
-        customer_order_index,
-        0,0,0,0,0,0,0,
-        subtotal_refund,
-        shipping_refund,
-        tax_refund
-    FROM reporting.beautystat_shopify_daily_refunds
-    WHERE order_id IN (SELECT order_id FROM orders)
-
-)
-
-, tw_data AS (
+with tw_data AS (
 
     SELECT 
         order_id,
@@ -79,41 +36,61 @@ WITH orders AS (
 , attributed_data AS (
 
     SELECT
-        r.date,
+        s.date,
         COALESCE(t.channel,'Other') AS channel,
         COALESCE(t.campaign_id,'(not set)') AS campaign_id,
 
-        r.order_id,
-        r.customer_order_index,
+        
         COALESCE(t.order_index,1) AS order_index,
 		
 		-- Order amount 
-		r.order_count,
+		s.orders,
+		s.first_orders,
 
         -- Sales amount
         (
-            COALESCE(r.gross_revenue,0)
-            - COALESCE(r.subtotal_discount,0)
-            + COALESCE(r.total_tax,0)
-            + COALESCE(r.shipping_price,0)
-            - COALESCE(r.shipping_discount,0)
+            COALESCE(s.gross_sales,0)
+            - COALESCE(s.subtotal_discounts,0)
+            + COALESCE(s.tax_sales,0)
+            + COALESCE(s.shipping_revenue,0)
+            - COALESCE(s.shipping_discounts,0)
         ) AS total_sales_amount,
 		(
-            COALESCE(r.gross_revenue,0)
-            - COALESCE(r.subtotal_discount,0)
+				COALESCE(s.first_order_gross_sales,0)
+				- COALESCE(s.first_order_subtotal_discounts,0)
+				+ COALESCE(s.first_order_tax_sales,0)
+				+ COALESCE(s.first_order_shipping_revenue,0)
+				- COALESCE(s.first_order_shipping_discounts,0)
+			) AS first_order_total_sales_amount,
+		(
+            COALESCE(s.gross_sales,0)
+            - COALESCE(s.subtotal_discounts,0)
         ) AS sales_amount,
+
+		(
+            COALESCE(s.first_oder_gross_sales,0)
+            - COALESCE(s.first_oder_subtotal_discounts,0)
+        ) AS firt_order_sales_amount,
 
         -- Refund amount
         (
-            COALESCE(r.subtotal_refund,0)
-            - COALESCE(r.shipping_refund,0)
-            + COALESCE(r.tax_refund,0)
+            COALESCE(s.subtotal_refunds,0)
+            - COALESCE(s.shipping_refunds,0)
+            + COALESCE(s.tax_refunds,0)
         ) AS total_refund_amount,
 		(
-            COALESCE(r.subtotal_refund,0)
-        ) AS refund_amount
+	            COALESCE(s.first_order_subtotal_refunds,0)
+	            - COALESCE(s.first_order_shipping_refunds,0)
+	            + COALESCE(s.first_order_tax_refunds,0)
+	        ) AS first_order_total_refund_amount,
+		(
+            COALESCE(s.subtotal_refunds,0)
+        ) AS refund_amount,
+		(
+	            COALESCE(s.first_order_subtotal_refunds,0)
+	        ) AS first_order_refund_amount
 
-    FROM refund_order_data r
+    FROM {{ source('reporting','shopify_sales') }} s
     LEFT JOIN tw_data t USING(order_id)
 
 )
@@ -132,18 +109,10 @@ WITH orders AS (
         ) AS total_revenue,
 
         SUM(
-            CASE 
-                WHEN customer_order_index = 1
-                THEN sales_amount::float / order_index::float
-                ELSE 0
-            END
+            firt_order_sales_amount::float / order_index::float
         ) AS new_revenue,
 		SUM(
-            CASE 
-                WHEN customer_order_index = 1
-                THEN total_sales_amount::float / order_index::float
-                ELSE 0
-            END
+            first_order_total_sales_amount::float / order_index::float
         ) AS total_new_revenue,
         SUM(
             refund_amount::float / order_index::float
@@ -152,18 +121,10 @@ WITH orders AS (
             total_refund_amount::float / order_index::float
         ) AS total_refunds,
         SUM(
-            CASE 
-                WHEN customer_order_index = 1
-                THEN refund_amount::float / order_index::float
-                ELSE 0
-            END
+            first_order_refund_amount::float / order_index::float
         ) AS new_refunds,
 		SUM(
-            CASE 
-                WHEN customer_order_index = 1
-                THEN total_refund_amount::float / order_index::float
-                ELSE 0
-            END
+            first_order_total_refund_amount::float / order_index::float
         ) AS total_new_refunds,
         SUM(
             (sales_amount - refund_amount)::float
@@ -174,14 +135,7 @@ WITH orders AS (
             / order_index::float
         ) AS total_net_revenue,
         SUM(order_count::float / order_index::float) AS purchases,
-
-        SUM(
-            CASE 
-                WHEN customer_order_index = 1
-                THEN order_count::float / order_index::float
-                ELSE 0
-            END
-        ) AS new_purchases
+ 		SUM(first_orders::float / order_index::float) AS new_purchases 
 
     FROM attributed_data
     GROUP BY 1,2,3
