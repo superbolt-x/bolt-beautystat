@@ -1,8 +1,13 @@
 {{ config (
     alias = target.database + '_blended_performance'
 )}}
+WITH orders AS (
 
-with tw_data AS (
+    SELECT order_id, date as order_date
+    FROM reporting.beautystat_shopify_daily_sales_by_order
+
+),
+	tw_data AS (
     SELECT 
         order_id,
 		order_date,
