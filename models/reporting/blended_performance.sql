@@ -2,8 +2,7 @@
     alias = target.database + '_blended_performance'
 )}}
 
-with tw_data AS ( test 
-
+with tw_data AS (
     SELECT 
         order_id,
 		order_date,
