@@ -6,4 +6,4 @@ sources:
   schema: reporting
   tables:
     - name: shopify_sales
-      identifier: cleverpup_shopify_sales
+      identifier: beautystat_shopify_sales
