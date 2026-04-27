@@ -31,6 +31,8 @@ vars:
     time_zone: 'US/Eastern'
     order_tags_keyword_exclusion: 'dummy' # exclude orders with tags including certain keywords from analytics e.g. 'dummy1|dummy2'
     sales_channel_exclusion: 'dummy' # exclude orders that came from certain sales channels from analytics e.g. 'channel1|channel2'
+    sales_channel_inclusion: 'dummy' # exclude orders that came from certain sales channels from analytics e.g. 'channel1|channel2'
+    shipping_countries_excluded: 'dummy' # include only orders which shipping country is in the list e.g. 'FR|BE', except if value 'dummy' is left 
     shipping_countries_included: 'dummy' # include only orders which shipping country is in the list e.g. 'FR|BE', except if value 'dummy' is left 
 
 models:
